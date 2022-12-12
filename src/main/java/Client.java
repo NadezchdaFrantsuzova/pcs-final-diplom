@@ -19,7 +19,7 @@ public class Client {
 
             System.out.println("Введите слово:");
             Scanner scanner = new Scanner(System.in);
-            String word = scanner.nextLine();
+            String word = scanner.nextLine().toLowerCase();
             out.println(word);
             System.out.println(in.readLine());
 

@@ -8,17 +8,14 @@ import java.io.IOException;
 import java.util.*;
 
 public class BooleanSearchEngine implements SearchEngine {
-    Map<String, List<PageEntry>> result = new HashMap<>();
+    private Map<String, List<PageEntry>> result = new HashMap<>();
 
     public BooleanSearchEngine(File pdfsDir) {
 
         for (File pdf : pdfsDir.listFiles()) {
 
-            String pdfName = pdf.getName();
-
             try (PdfDocument doc = new PdfDocument(new PdfReader(pdf))) {
 
-                int page = doc.getNumberOfPages();
                 Map<String, Integer> freqs = new HashMap<>();
                 List<PageEntry> pageEntryList;
 
@@ -36,21 +33,18 @@ public class BooleanSearchEngine implements SearchEngine {
                     }
                 }
                 for (var kv : freqs.entrySet()) {
-                    String wordResult = kv.getKey();
-                    int count = kv.getValue();
-
-                    if (result.containsKey(wordResult)) {
-                        pageEntryList = result.get(wordResult);
+                    if (result.containsKey(kv.getKey())) {
+                        pageEntryList = result.get(kv.getKey());
                     } else {
                         pageEntryList = new ArrayList<>();
                     }
-                    pageEntryList.add(new PageEntry(pdfName, page, count));
-
-                    Collections.sort(pageEntryList, Collections.reverseOrder());
-                    result.put(wordResult, pageEntryList);
+                    pageEntryList.add(new PageEntry(pdf.getName(), doc.getNumberOfPages(), kv.getValue()));
+                    result.put(kv.getKey(), pageEntryList);
+                    pageEntryList.sort(PageEntry::compareTo);
                 }
             } catch (FileNotFoundException e) {
-                throw new RuntimeException(e);
+                System.out.println("Файл не найден");
+                e.printStackTrace();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -59,6 +53,6 @@ public class BooleanSearchEngine implements SearchEngine {
 
     @Override
     public List<PageEntry> search(String word) {
-        return result.get(word);
+        return result.getOrDefault(word, Collections.EMPTY_LIST);
     }
 }
